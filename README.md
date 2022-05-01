@@ -7,5 +7,5 @@
 ### Список занятий
 
 * 1 Занятие: SQL и реляционные СУБД. PostgreSQL в облаках
-    + [Занятие]()
-    + [Домашнее задание]()
+    + [Занятие](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson1)
+    + [Домашнее задание](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson1/homework)
