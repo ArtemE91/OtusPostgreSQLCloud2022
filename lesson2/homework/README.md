@@ -99,14 +99,18 @@ $ select * from courses;
  $ sudo docker ps -a
  CONTAINER ID   IMAGE           COMMAND                  CREATED             STATUS                    PORTS                                                 NAMES
 
-207469eeb15f   postgres:14.2   "docker-entrypoint.s…"   22 seconds ago      Up 13 seconds (healthy)   0.0.0.0:5432->5432/tcp, :::5432->5432/tcp             server
-
 fc5201f3fa90   postgres:14.2   "docker-entrypoint.s…"   About an hour ago   Up 16 minutes (healthy)   5432/tcp, 0.0.0.0:5433->5433/tcp, :::5433->5433/tcp   client
  ```
  * создал его заново  
 ```shell
 $ sudo docker-compose -f docker-compose.yml create postgresql_server
 $ sudo docker-compose -f docker-compose.yml start postgresql_server
+
+ CONTAINER ID   IMAGE           COMMAND                  CREATED             STATUS                    PORTS                                                 NAMES
+
+207469eeb15f   postgres:14.2   "docker-entrypoint.s…"   22 seconds ago      Up 13 seconds (healthy)   0.0.0.0:5432->5432/tcp, :::5432->5432/tcp             server
+
+fc5201f3fa90   postgres:14.2   "docker-entrypoint.s…"   About an hour ago   Up 16 minutes (healthy)   5432/tcp, 0.0.0.0:5433->5433/tcp, :::5433->5433/tcp
 ```
  * подключился снова из контейнера с клиентом к контейнеру с сервером  
 ```shell
