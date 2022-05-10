@@ -10,4 +10,5 @@
     + [Занятие](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson1)
     + [Домашнее задание](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson1/homework)
 * 2 Занятие: Postgres & Docker
-  + [Домашнее задание]() 
+    + [Занятие](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson2) 
+    + [Домашнее задание](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson2) 

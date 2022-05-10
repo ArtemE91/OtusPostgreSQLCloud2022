@@ -22,7 +22,7 @@ services:
   postgresql_server:  
     image: "postgres:14.2"  
     container_name: server
-	environment:  
+    environment:  
       - POSTGRES_PASSWORD=111111  
       - POSTGRES_DB=courses  
       - POSTGRES_USER=courses  
@@ -43,7 +43,7 @@ services:
   
   postgresql_client:  
     image: "postgres:14.2"
-	container_name: client
+    container_name: client
     environment:  
       - POSTGRES_PASSWORD=111111  
     ports:  
