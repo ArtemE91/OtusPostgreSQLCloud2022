@@ -1,0 +1,48 @@
+---
+
+version: '3.9'
+
+services:
+  postgresql_server:
+    image: "postgres:14.2"
+    container_name: server
+    environment:
+      - POSTGRES_PASSWORD=111111
+      - POSTGRES_DB=courses
+      - POSTGRES_USER=courses
+    volumes:
+      - /var/lib/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      my-app-psql:
+        aliases:
+          - postgresql_server
+
+  postgresql_client:
+    image: "postgres:14.2"
+    container_name: client
+    environment:
+      - POSTGRES_PASSWORD=111111
+    ports:
+      - 5433:5433
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      my-app-psql:
+        aliases:
+          - postgresql_client
+
+
+networks:
+  my-app-psql:
