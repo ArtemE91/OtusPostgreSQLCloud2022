@@ -95,16 +95,20 @@ $ sudo -u postgres pg_ctlcluster 14 main start
 Error: /var/lib/postgresql/14/main is not accessible or does not exist
 ```
 * напишите получилось или нет и почему
+
  Не получилось так как pg_ctl пытается использовать данные из каталога /var/lib/postgresql/14/main
 * задание: найти конфигурационный параметр в файлах раположенных в /etc/postgresql/14/main который надо поменять и поменяйте его
+
  Параметр который необходимо изменить находится в `postgresql.conf` -> `data_directory`
 * напишите что и почему поменяли
+
   Создадим в директории conf.d `change_dir.conf` и пропишем этот параметр `data_directory = '/mnt/data/14/main'`
 * попытайтесь запустить кластер - sudo -u postgres pg_ctlcluster 14 main start
 ```shell
 $ sudo -u postgres pg_ctlcluster 14 main start
 ```
 * напишите получилось или нет и почему
+
  Кластер успешно запустился так как мы изменили каталог из которого нужно использовать данные
 * зайдите через через psql и проверьте содержимое ранее созданной таблицы
  ```sql
