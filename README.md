@@ -15,3 +15,6 @@
 * 3 Занятие: Настройка PostgreSQL
     + [Занятие](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson3) 
     + [Домашнее задание](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson3/homework) 
+* 4 Занятие: Углубленный анализ производительности. Профилирование. Мониторинг. Оптимизация.
+    + [Занятие](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson4) 
+    + [Домашнее задание](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson4/homework) 
