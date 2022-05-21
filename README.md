@@ -18,3 +18,6 @@
 * 4 Занятие: Углубленный анализ производительности. Профилирование. Мониторинг. Оптимизация.
     + [Занятие](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson4) 
     + [Домашнее задание](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson4/homework) 
+* 5 Занятие: Углубленное изучение бэкапов и репликаций
+    + [Занятие](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson5) 
+    + [Домашнее задание](https://github.com/ArtemE91/OtusPostgreSQLCloud2022/tree/main/lesson5/homework) 
