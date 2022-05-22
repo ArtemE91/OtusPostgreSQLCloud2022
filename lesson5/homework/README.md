@@ -100,22 +100,3 @@ $ psql -p 5433 otus -c "select * from test;"
   3
 (3 rows)
 ```
-
-Сделаем бекап при записи в БД. В первой консоли добавляем записи в БД.
-```shell
-$ psql
-postgres=# \c otus
-otus=# INSERT INTO test (i) VALUES (generate_series(1001, 10000000));
-```
-
-Пока данные заливаются во втором окне выполним бекап и восстановимся с него
-```shell
-$ wal-g backup-push /var/lib/postgresql/14/main
-$ pg_dropcluster --stop 14 main2
-$ pg_createcluster 14 main2
-$ rm -rf /var/lib/postgresql/14/main2
-$ wal-g backup-fetch /var/lib/postgresql/14/main2 LATEST
-$ touch "/var/lib/postgresql/14/main2/recovery.signal"
-$ pg_ctlcluster 14 main2 start
-```
-
