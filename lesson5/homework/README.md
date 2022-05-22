@@ -3,7 +3,6 @@
   
 ### Бэкапы Постгреса
 
-Делам бэкап Постгреса используя WAL-G или pg_probackup и восстанавливаемся на другом кластере
 
 Устанавливаем PostgreSQL и WAL-G
 ```shell
@@ -15,7 +14,6 @@ Ver Cluster Port Status Owner    Data directory              Log file
 
 $ wget https://github.com/wal-g/wal-g/releases/download/v1.1.1-rc/wal-g-pg-ubuntu-20.04-amd64.tar.gz && tar -zxvf wal-g-pg-ubuntu-20.04-amd64.tar.gz && sudo mv wal-g-pg-ubuntu-20.04-amd64 /usr/local/bin/wal-g
 $ sudo ls -l /usr/local/bin/wal-g
-$ sudo rm -rf /home/backups && sudo mkdir /home/backups && sudo chmod 777 /home/backups
 $ sudo su postgres
 $ vim ~/.walg.json
 ```
@@ -48,6 +46,7 @@ pg_ctlcluster 14 main start
 
 Создадим тестовую базу данных и заполним данными
 ```shell
+psql otus -c "create database otus;"
 psql otus -c "create table test(i int);"
 psql otus -c "insert into test values (10), (20), (30);"
 psql otus -c "select * from test;"
