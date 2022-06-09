@@ -12,7 +12,8 @@
 * Описать что и как делали и с какими проблемами столкнулись
 
 Решил протестировать разницу на боевой таблице в Pet-Project. Скопируем ее на хост. Размер файла в *.csv 10.35GB
-В таблице хранится информация по частотности поисковых запросах и другая необходимая информация.
+В таблице хранится информация по частотности поисковых запросах и другая необходимая информация. Тестировать будем
+поиск подстроки в строке с сортировкой по частотности.
 
 Скинем файл в облако
 ```shell
@@ -40,7 +41,8 @@ $ sudo systemctl status mongod
 Подключимся к Postgres и загрузим данные:
 ```sql
 create database otus;
-create table "taginfo";
+-- При загрузке дампа возникли ошибки. Сделал дамп через pg_dump и все загрузилось без проблем
+$ sudo psql -h localhost -d otus -U postgres -f backup_taginfo.sql
 ```
 
 Подключимся к mongo и загрузим данные:
@@ -51,38 +53,42 @@ switched to db otus
 > db.createCollection("taginfo")
 { "ok" : 1 }
 > exit
-
+-- csv файл не удалось загрузить. Сделал dump с помощью  python manage.py dumpdata в json.
+-- Файл пришлось распарссить ijson и сгенирировать 60 файлов по 200 000 записей.
+-- Через bash залил все файлы в mongo
+$ mongoimport --db otus --collection taginfo --file taginfo_mongo_{index}.json --jsonArray
 ```
 
-mongoimport --db otus --collection taginfo --file taginfo_mongo_0.json --jsonArray
-sudo psql -h localhost -d otus -U postgres -f /Users/arteme/Downloads/backup_taginfo.sql
-
-db.taginfo.find({'name': {'$regex': 'мяч'}}).explain("executionStats")
+Проверим время выполнения запроса без установки индексов в Mongo
+```shell
+> db.taginfo.find({'name': {'$regex': 'мяч'}}).explain("executionStats")
 "nReturned" : 20128
 "executionTimeMillis" : 11205
-
-db.taginfo.find({'name': {'$regex': 'мяч'}}).limit(5).sort({"frequency_30": 1}).explain("executionStats")
+> db.taginfo.find({'name': {'$regex': 'мяч'}}).limit(5).sort({"frequency_30": 1}).explain("executionStats")
 "executionTimeMillis" : 11622
+```
 
+Проверим время выполнения запроса без установки индексов в PostgreSQL
+```shell
+\timing
+select name, frequency_30 from taginfo where name like '%мяч%' order by frequency_30 limit 5;
+Time: 4483.133 ms (00:04.483)
+```
+
+Создадим необходимые индексы в монго
+```shell
 -- Создание индекса по возрастанию для поля частотности
-db.taginfo.createIndex({frequency_30: 1})
-
+> db.taginfo.createIndex({frequency_30: 1})
 {
 	"numIndexesBefore" : 1,
 	"numIndexesAfter" : 2,
 	"createdCollectionAutomatically" : false,
 	"ok" : 1
 }
-
-db.taginfo.find({'name': {'$regex': 'мяч'}}).limit(5).sort({"frequency_30": 1}).explain("executionStats")
-"executionTimeMillis" : 176
-
-db.taginfo.find({'name': {'$regex': 'мяч'}}).limit(200).sort({"frequency_30": 1}).explain("executionStats")
+> db.taginfo.find({'name': {'$regex': 'мяч'}}).limit(200).sort({"frequency_30": 1}).explain("executionStats")
 "executionTimeMillis" : 466
-
-db.taginfo.find({$or: [{'name': {$regex: 'мяч'}}, {'name': {'$regex': 'баскетбольный'}}]}).limit(200).sort({"frequency_30": 1}).explain("executionStats")
+> db.taginfo.find({$or: [{'name': {$regex: 'мяч'}}, {'name': {'$regex': 'баскетбольный'}}]}).limit(200).sort({"frequency_30": 1}).explain("executionStats")
 "executionTimeMillis" : 505
-
 -- создадим индекс для тестового поля name
 db.taginfo.createIndex({name : "text"}, {default_language: "russian"})
 {
@@ -91,30 +97,21 @@ db.taginfo.createIndex({name : "text"}, {default_language: "russian"})
 	"createdCollectionAutomatically" : false,
 	"ok" : 1
 }
-
-db.taginfo.find({$or: [{'name': {$regex: 'мяч'}}, {'name': {'$regex': 'баскетбольный'}}]}).limit(200).sort({"frequency_30": 1}).explain("executionStats")
+db.taginfo.find({$or: [{'name': {$regex: 'платье'}}, {'name': {'$regex': 'кофта'}}]}).limit(200).sort({"frequency_30": 1}).explain("executionStats")
 "executionTimeMillis" : 494
+```
 
-
-explain select * from taginfo where name ilike 'мяч' order by frequency_30 limit 5;
-
-SELECT indexname FROM pg_indexes WHERE tablename = 'taginfo';
-\timing
-
-select name, frequency_30 from taginfo where name like '%мяч%' order by frequency_30 limit 5;
-Time: 4483.133 ms (00:04.483)
-
-CREATE INDEX frequency_30_desc_index ON taginfo (frequency_30 DESC NULLS LAST);
-select name, frequency_30 from taginfo where name like '%мяч%' order by frequency_30 limit 200;
+Создадим необходимые индексы в postgresql
+```shell
+-- Создание индекса по возрастанию для поля частотности
+$ CREATE INDEX frequency_30_desc_index ON taginfo (frequency_30 DESC NULLS LAST);
+$ select name, frequency_30 from taginfo where name like '%мяч%' order by frequency_30 limit 200;
 Time: 4406.017 ms (00:04.406)
-
-select name, frequency_30 from taginfo where name like '%мяч%' or name like '%баскетбольный%' order by frequency_30 limit 200;
+$ select name, frequency_30 from taginfo where name like '%мяч%' or name like '%баскетбольный%' order by frequency_30 limit 200;
 Time: 7674.655 ms (00:07.675)
-
-CREATE EXTENSION pg_trgm;
-CREATE INDEX trgm_idx_taginfo_name ON taginfo USING gin (name gin_trgm_ops);
-
-explain select name, frequency_30 from taginfo where name like '%мяч%' order by frequency_30 limit 5;
+-- Поиск 2 слов очень сильно увеличивает время
+-- Посмотрим план выполнения
+$ explain select name, frequency_30 from taginfo where name like '%мяч%' order by frequency_30 limit 5;
                                         QUERY PLAN                                        
 ------------------------------------------------------------------------------------------
  Limit  (cost=331326.84..331327.43 rows=5 width=61)
@@ -124,8 +121,10 @@ explain select name, frequency_30 from taginfo where name like '%мяч%' order 
                Sort Key: frequency_30
                ->  Parallel Seq Scan on taginfo  (cost=0.00..330318.55 rows=498 width=61)
                      Filter: ((name)::text ~~ '%мяч%'::text)
-
-explain analyze select name, frequency_30 from taginfo where name like '%мяч%' or name like '%баскетбольный%' order by frequency_30 limit 200;
+-- Добавим EXTENTION для разбиение поля name на триграммы
+$ CREATE EXTENSION pg_trgm;
+$ CREATE INDEX trgm_idx_taginfo_name ON taginfo USING gin (name gin_trgm_ops);
+$explain analyze select name, frequency_30 from taginfo where name like '%мяч%' or name like '%баскетбольный%' order by frequency_30 limit 200;
                                                                          QUERY PLAN                                                                         
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
  Limit  (cost=9244.73..9245.23 rows=200 width=61) (actual time=201.551..201.577 rows=200 loops=1)
@@ -141,6 +140,9 @@ explain analyze select name, frequency_30 from taginfo where name like '%мяч%
                            Index Cond: ((name)::text ~~ '%мяч%'::text)
                      ->  Bitmap Index Scan on trgm_idx_taginfo_name  (cost=0.00..220.97 rows=1196 width=0) (actual time=148.407..148.408 rows=1791 loops=1)
                            Index Cond: ((name)::text ~~ '%баскетбольный%'::text)
+$ select name, frequency_30 from taginfo where name like '%платье%' or name like '%кофта%' order by frequency_30 limit 200;
+Time: 24284.050 ms (00:24.284)
+```
+ 
+Время выполнения конечного тестового запроса в mongo: 0.5c, в postgresql: 24с
 
-select name, frequency_30 from taginfo where name like '%мяч%' or name like '%баскетбольный%' order by frequency_30 limit 200;
-Time: 45.738 ms
