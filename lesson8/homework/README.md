@@ -146,3 +146,30 @@ Time: 24284.050 ms (00:24.284)
  
 Время выполнения конечного тестового запроса в mongo: 0.5c, в postgresql: 24с
 
+```sql
+
+SELECT indexname, indexdef FROM pg_indexes WHERE tablename='taginfo';
+drop index trgm_idx_taginfo_name;
+CREATE INDEX idx ON taginfo USING GIN (to_tsvector('russian',name));
+
+explain analyze select name, frequency_30 from taginfo where name like '%мяч%' or name like '%баскетбольный%' order by frequency_30 limit 200;
+                                                                QUERY PLAN                                                                 
+-------------------------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=343820.57..343843.90 rows=200 width=61) (actual time=7660.514..7663.273 rows=200 loops=1)
+   ->  Gather Merge  (cost=343820.57..344053.22 rows=1994 width=61) (actual time=7657.342..7660.082 rows=200 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         ->  Sort  (cost=342820.55..342823.04 rows=997 width=61) (actual time=7638.717..7638.738 rows=200 loops=3)
+               Sort Key: frequency_30
+               Sort Method: top-N heapsort  Memory: 68kB
+               Worker 0:  Sort Method: top-N heapsort  Memory: 74kB
+               Worker 1:  Sort Method: top-N heapsort  Memory: 69kB
+               ->  Parallel Seq Scan on taginfo  (cost=0.00..342777.46 rows=997 width=61) (actual time=10.338..7624.144 rows=6760 loops=3)
+                     Filter: (((name)::text ~~ '%мяч%'::text) OR ((name)::text ~~ '%баскетбольный%'::text))
+                     Rows Removed by Filter: 3980091
+\timing
+select name, frequency_30 from taginfo where name like '%платье%' or name like '%кофта%' order by frequency_30 limit 200;
+Time: 7843.323 ms (00:07.843)
+select name, frequency_30 from taginfo where name like '%мяч%' or name like '%баскетбольный%' order by frequency_30 limit 200;
+Time: 7668.810 ms (00:07.669)
+```
